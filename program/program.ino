@@ -8,6 +8,18 @@
 #define ENA D5
 #define ENB D6
 
+//74HC595
+#define DATA_PIN D7
+#define CLOCK_PIN D8
+#define LATCH_PIN D9
+
+// Estado de LEDs (bits para cada LED)
+const uint8_t LUZ_AMARILLA = 0b00000011;          // Bits 0 y 1
+const uint8_t LUZ_REVERSA = 0b00001100;           // Bits 2 y 3
+const uint8_t LUZ_DIRECCIONAL_IZQ = 0b00010000;   // Bit 4
+const uint8_t LUZ_DIRECCIONAL_DER = 0b00100000;   // Bit 5
+const uint8_t LUZ_FRENO = 0b11000000;             // Bits 6 y 7
+
 int velocidad = 100;
 int tiempo = 100;
 int tiempoDetenido = 500;
@@ -15,6 +27,12 @@ const char* ssid = "PC";
 const char* password = "68+1O2h8";
 
 ESP8266WebServer server(80);
+
+void procesarLuces(uint8_t data) {
+    digitalWrite(LATCH_PIN, LOW);
+    shiftOut(DATA_PIN, CLOCK_PIN, MSBFIRST, data);
+    digitalWrite(LATCH_PIN, HIGH);
+}
 
 void procesarSecuencia(String secuencia) {
     for (int i = 0; i < secuencia.length(); i++) {
@@ -40,6 +58,7 @@ void procesarSecuencia(String secuencia) {
 }
 void adelante() {
   Serial.println("  Adelante");
+  procesarLuces(LUZ_AMARILLA);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, HIGH);
@@ -51,6 +70,7 @@ void adelante() {
 
 void atras() {
   Serial.println("  Atrás");
+  procesarLuces(LUZ_AMARILLA | LUZ_REVERSA);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, LOW);
@@ -62,6 +82,7 @@ void atras() {
 
 void izquierda() {
   Serial.println("  Izquierda");
+  procesarLuces(LUZ_AMARILLA | LUZ_DIRECCIONAL_IZQ);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, HIGH);
@@ -73,6 +94,7 @@ void izquierda() {
 
 void derecha() {
   Serial.println("  Derecha");
+  procesarLuces(LUZ_AMARILLA | LUZ_DIRECCIONAL_DER);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -84,6 +106,7 @@ void derecha() {
 
 void detenerMotores() {
   Serial.println("  DETENIDO ");
+  procesarLuces(LUZ_AMARILLA | LUZ_FRENO);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -117,10 +140,17 @@ void setup() {
   server.on("/tiempo", HTTP_POST, setTiempo);
   server.on("/configuraciones", HTTP_GET, getConfiguraciones);
 
+ // Pines del 74HC595
+  pinMode(DATA_PIN, OUTPUT);
+  pinMode(CLOCK_PIN, OUTPUT);
+  pinMode(LATCH_PIN, OUTPUT);
+
   server.begin();
 
   analogWrite(ENA, velocidad);
   analogWrite(ENB, velocidad);
+
+  procesarLuces(LUZ_AMARILLA);
 }
 
 void iniciar() {
