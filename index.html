@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sidebar</title>
     <style>
-        /* Estilos globales */
         * {
             margin: 0;
             padding: 0;
@@ -188,20 +187,20 @@
     </div>
     <aside class="sidebar" id="sidebar">
         <label for="ip-address">Dirección IP:</label>
-        <input type="text" id="direccion-ip" placeholder="192.168.0.1" oninput="actualizarIP('direccion-ip')">
+        <input type="text" id="direccion-ip" placeholder="1.1.1.1" oninput="actualizarIP('direccion-ip')">
 
         <div class="slider-container">
             <label for="velocidad">Velocidad:</label>
-            <input type="range" id="velocidad" min="0" max="255" value="50"
+            <input type="range" id="velocidad" min="0" max="255" value="100"
                 oninput="actualizarVelocidad('velocidad', 'velocidad-valor')">
-            <span id="velocidad-valor" class="value-display">50</span>
+            <span id="velocidad-valor" class="value-display">100</span>
         </div>
 
         <div class="slider-container">
             <label for="segundos">Tiempo:</label>
-            <input type="range" id="segundos" min="0" max="10" value="10"
+            <input type="range" id="segundos" min="0" max="10" value="1"
                 oninput="actualizarTiempo('segundos', 'segundos-valor')">
-            <span id="segundos-valor" class="value-display">10</span>
+            <span id="segundos-valor" class="value-display">1</span>
         </div>
     </aside>
     <main class="content" id="content">
