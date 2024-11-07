@@ -1,247 +1,432 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vehículo</title>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar</title>
     <style>
-      body {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-        margin: 0;
-      }
+        /* Estilos globales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: sans-serif;
+        }
 
-      .controles {
-        flex: 65;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
+        body {
+            display: flex;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-      .grid-container {
-        display: grid;
-        grid-template-columns: repeat(3, 110px);
-        grid-template-rows: repeat(3, 110px);
-        gap: 2px;
-        justify-content: center;
-        align-items: center;
-      }
+        body.no-scroll {
+            position: fixed;
+            width: 100%;
+            overflow: hidden;
+        }
 
-      .acciones {
-        flex: 10;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
+        .menu-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            cursor: pointer;
+            z-index: 2;
+        }
 
-      .acciones-container {
-        display: grid;
-        grid-template-columns: repeat(2, 110px);
-        gap: 10px;
-        justify-content: center;
-        align-items: center;
-      }
+        .menu-toggle span {
+            display: block;
+            width: 20px;
+            height: 3px;
+            margin: 6px;
+            background-color: #333;
+            transition: 0.4s;
+        }
 
-      .steps {
-        flex: 25;
-        display: flex;
-        align-items: center;
-        overflow-x: auto;
-        gap: 10px;
-        background-color: #f0f0f0;
-        padding: 10px;
-      }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #2C8C99;
+            color: #fff;
+            padding-top: 50px;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+            z-index: 1;
+        }
 
-      button {
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        outline: none;
-      }
+        .sidebar label {
+            color: #fff;
+            display: block;
+            margin: 15px 25px 5px;
+        }
 
-      .pressed img {
-        transform: scale(0.9);
-        transition: transform 0.1s;
-      }
+        .sidebar input[type="text"] {
+            margin: 0 25px;
+            padding: 8px;
+            width: calc(100% - 50px);
+            border: none;
+            border-radius: 4px;
+        }
 
-      img {
-        max-width: 100%;
-        max-height: 100%;
-        transition: transform 0.1s;
-      }
+        .sidebar input[type="range"] {
+            margin: 0 25px;
+            width: calc(100% - 50px);
+        }
 
-      .steps img {
-        width: 8%;
-        height: auto;
-      }
+        .value-display {
+            color: #fff;
+            font-size: 16px;
+            margin-left: 25px;
+        }
 
-      .highlight {
-        filter: drop-shadow(0 0 0.75rem crimson);
-        transition: filter 3s;
-      }
+        .sidebar.active {
+            left: 0;
+        }
+
+        .menu-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 7.5px);
+        }
+
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -7.5px);
+        }
+
+        .content {
+            width: 100%;
+            padding: 20px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            margin: 0;
+            height: 100vh;
+        }
+
+        .controles {
+            flex: 65;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 110px);
+            grid-template-rows: repeat(3, 110px);
+            gap: 2px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .acciones {
+            flex: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .acciones-container {
+            display: grid;
+            grid-template-columns: repeat(2, 100px);
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .steps {
+            flex: 30;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            gap: 25px;
+            background-color: #f0f0f0;
+            padding: 20px;
+        }
+
+        button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .pressed img {
+            transform: scale(0.9);
+            transition: transform 0.1s;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            transition: transform 0.1s;
+        }
+
+        .steps img {
+            width: 8%;
+            height: auto;
+        }
+
+        .highlight {
+            filter: drop-shadow(0 0 0.75rem crimson);
+            transition: filter 3s;
+        }
     </style>
-  </head>
+</head>
 
-  <body>
-    <div class="controles">
-      <div class="grid-container">
-        <div class="grid-item empty"></div>
-        <div class="grid-item">
-          <button
-            onclick="accion('adelante', this)"
-            onmousedown="presionar(this)"
-            onmouseup="soltar(this)"
-          >
-            <img src="img/adelante.png" alt="Adelante" />
-          </button>
-        </div>
-        <div class="grid-item empty"></div>
-
-        <div class="grid-item">
-          <button
-            onclick="accion('izquierda', this)"
-            onmousedown="presionar(this)"
-            onmouseup="soltar(this)"
-          >
-            <img src="img/izquierda.png" alt="Izquierda" />
-          </button>
-        </div>
-        <div class="grid-item empty"></div>
-        <div class="grid-item">
-          <button
-            onclick="accion('derecha', this)"
-            onmousedown="presionar(this)"
-            onmouseup="soltar(this)"
-          >
-            <img src="img/derecha.png" alt="Derecha" />
-          </button>
-        </div>
-
-        <div class="grid-item empty"></div>
-        <div class="grid-item">
-          <button
-            onclick="accion('atras', this)"
-            onmousedown="presionar(this)"
-            onmouseup="soltar(this)"
-          >
-            <img src="img/atras.png" alt="Atrás" />
-          </button>
-        </div>
-        <div class="grid-item empty"></div>
-      </div>
+<body>
+    <div class="menu-toggle" onclick="toggleMenu()">
+        <span></span>
+        <span></span>
+        <span></span>
     </div>
-    <div class="acciones" id="acciones">
-      <div class="acciones-container">
-        <div class="grid-item">
-          <button
-            onclick="stop(this)"
-            onmousedown="presionar(this)"
-            onmouseup="soltar(this)"
-          >
-            <img src="img/stop.png" alt="Stop" />
-          </button>
+    <aside class="sidebar" id="sidebar">
+        <label for="ip-address">Dirección IP:</label>
+        <input type="text" id="direccion-ip" placeholder="192.168.0.1" oninput="actualizarIP('direccion-ip')">
+
+        <div class="slider-container">
+            <label for="velocidad">Velocidad:</label>
+            <input type="range" id="velocidad" min="0" max="255" value="50"
+                oninput="actualizarVelocidad('velocidad', 'velocidad-valor')">
+            <span id="velocidad-valor" class="value-display">50</span>
         </div>
-        <div class="grid-item">
-          <button
-            onclick="play(this)"
-            onmousedown="presionar(this)"
-            onmouseup="soltar(this)"
-          >
-            <img src="img/play.png" alt="Play" />
-          </button>
+
+        <div class="slider-container">
+            <label for="segundos">Tiempo:</label>
+            <input type="range" id="segundos" min="0" max="10" value="10"
+                oninput="actualizarTiempo('segundos', 'segundos-valor')">
+            <span id="segundos-valor" class="value-display">10</span>
         </div>
-      </div>
-    </div>
-    <div class="steps" id="stepsContainer"></div>
+    </aside>
+    <main class="content" id="content">
+        <div class="controles">
+            <div class="grid-container">
+                <div class="grid-item empty"></div>
+                <div class="grid-item">
+                    <button onclick="accion('adelante', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
+                        <img src="img/adelante.png" alt="Adelante" />
+                    </button>
+                </div>
+                <div class="grid-item empty"></div>
+
+                <div class="grid-item">
+                    <button onclick="accion('izquierda', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
+                        <img src="img/izquierda.png" alt="Izquierda" />
+                    </button>
+                </div>
+                <div class="grid-item empty"></div>
+                <div class="grid-item">
+                    <button onclick="accion('derecha', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
+                        <img src="img/derecha.png" alt="Derecha" />
+                    </button>
+                </div>
+
+                <div class="grid-item empty"></div>
+                <div class="grid-item">
+                    <button onclick="accion('atras', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
+                        <img src="img/atras.png" alt="Atrás" />
+                    </button>
+                </div>
+                <div class="grid-item empty"></div>
+            </div>
+        </div>
+        <div class="acciones" id="acciones">
+            <div class="acciones-container">
+                <button onclick="stop()" onmousedown="presionar(this)" onmouseup="soltar(this)">
+                    <img src="img/stop.png" alt="Stop" />
+                </button>
+                <button onclick="play()" onmousedown="presionar(this)" onmouseup="soltar(this)">
+                    <img src="img/play.png" alt="Play" />
+                </button>
+            </div>
+        </div>
+        <div class="steps" id="stepsContainer"></div>
+    </main>
 
     <script>
-      let secuencia = "";
-      let interval;
-      let nodemcu = "192.168.31.17";
-
-      function presionar(button) {
-        button.classList.add("pressed");
-      }
-
-      function soltar(button) {
-        button.classList.remove("pressed");
-      }
-
-      function accion(direccion, button) {
+        let secuencia = "";
+        let interval;
+        let previo = false;
+        let debounceTimeoutIP;
+        let debounceTimeoutVelocidad;
+        let debounceTimeoutTiempo;
+        let nodemcu = "192.168.137.123";
+        const intervalTime = 100;
         const stepsContainer = document.getElementById("stepsContainer");
-        const img = document.createElement("img");
-        img.src = `img/${direccion}.png`;
-        img.alt = direccion.charAt(0).toUpperCase() + direccion.slice(1);
-        stepsContainer.appendChild(img);
 
-        if (direccion == "adelante") secuencia += "W";
-        else if (direccion == "atras") secuencia += "S";
-        else if (direccion == "izquierda") secuencia += "A";
-        else if (direccion == "derecha") secuencia += "D";
-      }
 
-      async function stop() {
-        if (interval) {
-          clearInterval(interval);
-        }
-        secuencia = "X";
-        const stepsContainer = document.getElementById("stepsContainer");
-        while (stepsContainer.firstChild) {
-          stepsContainer.removeChild(stepsContainer.firstChild);
-        }
-        try {
-          const response = await fetch(`http://${nodemcu}/stop`, {
-            headers: {
-              "Content-Type": "text/plain",
-              "Content-Length": secuencia.length.toString(),
-            },
-            method: "POST",
-            body: secuencia,
-          });
-        } catch (error) {
-          alert("Ocurrió un error al realizar la solicitud");
-        }
-      }
-      async function play() {
-        if (interval) clearInterval(interval);
-        
-        try {
-          const response = await fetch(`http://${nodemcu}/play`, {
-            headers: {
-              "Content-Type": "text/plain",
-              "Content-Length": secuencia.length.toString(),
-            },
-            method: "POST",
-            body: secuencia,
-          });
-        } catch (error) {
-          alert("Ocurrió un error al realizar la solicitud");
-        }
-        console.log(secuencia)
-        const images = stepsContainer.getElementsByTagName("img");
-        for (let i = 0; i < images.length; i++) {
-          images[i].classList.remove("highlight");
+        function presionar(button) {
+            button.classList.add("pressed");
         }
 
-        let index = 0;
-        const intervalTime = 2000;
-
-        if (images.length > 0) {
-          images[index].classList.add("highlight");
-          index++;
+        function soltar(button) {
+            button.classList.remove("pressed");
         }
 
-        interval = setInterval(() => {
-          if (index < images.length) {
-            images[index].classList.add("highlight");
-            index++;
-          } else {
+        function accion(direccion) {
+            if (interval || previo) {
+                clearSteps();
+            }
+            const img = document.createElement("img");
+            img.src = `img/${direccion}.png`;
+            img.alt = direccion.charAt(0).toUpperCase() + direccion.slice(1);
+            stepsContainer.appendChild(img);
+
+            if (direccion == "adelante") secuencia += "W";
+            else if (direccion == "atras") secuencia += "S";
+            else if (direccion == "izquierda") secuencia += "A";
+            else if (direccion == "derecha") secuencia += "D";
+        }
+
+        async function stop() {
+            clearSteps();
+            secuencia = ""
+            try {
+                const response = await fetch(`http://${nodemcu}/stop`, {
+                    headers: { "Content-Type": "text/plain" },
+                    method: "POST",
+                    body: "X",
+                });
+            } catch (error) {
+                alert("Error en la solicitud");
+            }
+        }
+
+        async function play() {
+            if (interval) {
+                clearSteps()
+            }
+            try {
+                const response = await fetch(`http://${nodemcu}/play`, {
+                    headers: { "Content-Type": "text/plain" },
+                    method: "POST",
+                    body: secuencia,
+                });
+            } catch (error) {
+                alert("Error en la solicitud");
+            }
+
+            const images = stepsContainer.getElementsByTagName("img");
+            let index = 0;
+            highlightImages(images, index);
+            secuencia = "";
+            previo = true;
+        }
+
+        function clearSteps() {
             clearInterval(interval);
-          }
-        }, intervalTime);
-      }
+            interval = null;
+            previo = false;
+            stepsContainer.innerHTML = "";
+        }
+
+        function highlightImages(images, index) {
+            interval = setInterval(() => {
+                if (index < images.length) {
+                    images[index++].classList.add("highlight");
+                } else {
+                    clearInterval(interval);
+                    interval = null;
+                }
+            }, intervalTime);
+            secuencia = "";
+        }
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.menu-toggle');
+            document.body.classList.toggle('no-scroll');
+            sidebar.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+        function actualizarIP(inputID) {
+            const input = document.getElementById(inputID);
+            const ip = input.value;
+            debounceSendRequestIP(input, ip);
+        }
+
+        function debounceSendRequestIP(input, ip) {
+            clearTimeout(debounceTimeoutIP);
+            debounceTimeoutIP = setTimeout(() => {
+                if (validarIP(ip)) {
+                    input.placeholder = ip;
+                    nodemcu = ip;
+                } else {
+                    alert("Dirección IP inválida");
+                    input.placeholder = "IP inválida";
+                }
+            }, 2000); 
+        }
+
+        function validarIP(ip) {
+            const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            return regex.test(ip);
+        }
+        function actualizarVelocidad(sliderID, displayID) {
+            const slider = document.getElementById(sliderID);
+            const display = document.getElementById(displayID);
+            display.textContent = slider.value;
+            debounceSendRequestVelocidad(slider.value);
+        }
+        function debounceSendRequestVelocidad(value) {
+            clearTimeout(debounceTimeoutVelocidad);
+            debounceTimeoutVelocidad = setTimeout(() => {
+                setVelocidad(value);
+            }, 1000);
+        }
+        async function setVelocidad(velocidad){            
+            try {
+                const response = await fetch(`http://${nodemcu}/velocidad`, {
+                    headers: { "Content-Type": "text/plain" },
+                    method: "POST",
+                    body: parseInt(velocidad)
+                });
+            } catch (error) {
+                alert("Error en la solicitud");
+            }
+        }
+
+        function actualizarTiempo(sliderID, displayID) {
+            const slider = document.getElementById(sliderID);
+            const display = document.getElementById(displayID);
+            display.textContent = slider.value;
+            debounceSendRequestTiempo(slider.value);
+
+        }
+
+        function debounceSendRequestTiempo(value) {
+            clearTimeout(debounceTimeoutTiempo);
+            debounceTimeoutTiempo = setTimeout(() => {
+                setTiempo(value)
+            }, 1000);
+        }
+        async function setTiempo(tiempo){
+            try {
+                const response = await fetch(`http://${nodemcu}/tiempo`, {
+                    headers: { "Content-Type": "text/plain" },
+                    method: "POST",
+                    body: parseInt(tiempo)
+                });
+            } catch (error) {
+                alert("Error en la solicitud");
+            }
+        }
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.menu-toggle');
+            if (!sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                sidebar.classList.remove('active');
+                toggle.classList.remove('active');
+                document.body.classList.remove('no-scroll');
+            }
+        });
     </script>
-  </body>
+</body>
+
 </html>
