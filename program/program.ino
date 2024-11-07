@@ -9,8 +9,8 @@
 #define ENB D6
 
 int velocidad = 100;
-int tiempo = 1000;
-
+int tiempo = 100;
+int tiempoDetenido = 500;
 const char* ssid = "PC";
 const char* password = "68+1O2h8";
 
@@ -88,6 +88,7 @@ void detenerMotores() {
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
+  delay(tiempoDetenido);
 }
 void setup() {
   pinMode(IN1, OUTPUT);
@@ -114,6 +115,7 @@ void setup() {
   server.on("/stop", HTTP_POST, detener);
   server.on("/velocidad", HTTP_POST, setVelocidad);
   server.on("/tiempo", HTTP_POST, setTiempo);
+  server.on("/configuraciones", HTTP_GET, getConfiguraciones);
 
   server.begin();
 
@@ -157,14 +159,18 @@ void setTiempo(){
   server.sendHeader("Access-Control-Allow-Origin", "*");
   if (server.hasArg("plain")) {
     int nuevoTiempo = server.arg("plain").toInt();
-    if(nuevoTiempo >=0 && nuevoTiempo <= 10){
-      tiempo = nuevoTiempo * 1000;
+    if(nuevoTiempo >=100 && nuevoTiempo <= 1000){
+      tiempo = nuevoTiempo;
       Serial.println("Nuevo tiempo: " + String(tiempo));
       server.send(200, "text/plain", "Nueva tiempo procesado" + tiempo);
     }
   } else {
     server.send(400, "text/plain", "No se recibió velocidad");
   }
+}
+void getConfiguraciones() {
+  String response = "{ \"velocidad\": " + String(velocidad) + ", \"tiempo\": " + String(tiempo) + " }";
+  server.send(200, "application/json", response);
 }
 void loop() {
   server.handleClient();
