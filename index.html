@@ -191,16 +191,16 @@
 
         <div class="slider-container">
             <label for="velocidad">Velocidad:</label>
-            <input type="range" id="velocidad" min="0" max="255" value="100"
+            <input type="range" id="velocidad" min="0" max="255" value="0" step="5"
                 oninput="actualizarVelocidad('velocidad', 'velocidad-valor')">
-            <span id="velocidad-valor" class="value-display">100</span>
+            <span id="velocidad-valor" class="value-display">0</span>
         </div>
 
         <div class="slider-container">
-            <label for="segundos">Tiempo:</label>
-            <input type="range" id="segundos" min="0" max="10" value="1"
-                oninput="actualizarTiempo('segundos', 'segundos-valor')">
-            <span id="segundos-valor" class="value-display">1</span>
+            <label for="tiempo">Tiempo:</label>
+            <input type="range" id="tiempo" min="100" max="1000" value="100" step="5"
+                oninput="actualizarTiempo('tiempo', 'tiempo-valor')">
+            <span id="tiempo-valor" class="value-display">100</span>
         </div>
     </aside>
     <main class="content" id="content">
@@ -255,8 +255,8 @@
         let debounceTimeoutIP;
         let debounceTimeoutVelocidad;
         let debounceTimeoutTiempo;
-        let nodemcu = "192.168.137.123";
-        const intervalTime = 100;
+        let nodemcu = "1.1.1.1";
+        const intervalTime = 360;
         const stepsContainer = document.getElementById("stepsContainer");
 
 
@@ -279,8 +279,8 @@
 
             if (direccion == "adelante") secuencia += "W";
             else if (direccion == "atras") secuencia += "S";
-            else if (direccion == "izquierda") secuencia += "A";
-            else if (direccion == "derecha") secuencia += "D";
+            else if (direccion == "izquierda") secuencia += "D";
+            else if (direccion == "derecha") secuencia += "A";
         }
 
         async function stop() {
@@ -386,6 +386,12 @@
                     method: "POST",
                     body: parseInt(velocidad)
                 });
+				if (response.ok) {
+					const respuesta = await response.text();
+					alert(respuesta);
+				} else {
+					alert("Error en la respuesta del servidor:", response.status);
+				}
             } catch (error) {
                 alert("Error en la solicitud");
             }
@@ -403,19 +409,54 @@
             clearTimeout(debounceTimeoutTiempo);
             debounceTimeoutTiempo = setTimeout(() => {
                 setTiempo(value)
+				intervalTime = value;
             }, 1000);
         }
         async function setTiempo(tiempo){
             try {
-                const response = await fetch(`http://${nodemcu}/tiempo`, {
-                    headers: { "Content-Type": "text/plain" },
-                    method: "POST",
-                    body: parseInt(tiempo)
+				const response = await fetch(`http://${nodemcu}/tiempo`, {
+					headers: { "Content-Type": "text/plain" },
+					method: "POST",
+					body: parseInt(tiempo)
                 });
+				if (response.ok) {
+					const respuesta = await response.text();
+					alert(respuesta);
+				} else {
+					alert("Error en la respuesta del servidor:", response.status);
+				}
             } catch (error) {
                 alert("Error en la solicitud");
             }
         }
+
+		async function cargarConfiguraciones() {
+			try {
+				const response = await fetch(`${nodoMCUIp}/configuraciones`);
+
+				if (response.ok) {
+                    const data = await response.json();
+					const sliderVelocidad = document.getElementById("velocidad");
+                    const displayVelocidad = document.getElementById("velocidad-valor");
+
+					const sliderTiempo = document.getElementById("tiempo");
+					const displayTiempo = document.getElementById("tiempo-valor");
+
+
+					sliderVelocidad.value = data.velocidad;
+					displayVelocidad.textContent = data.velocidad;
+                    sliderTiempo.value = data.tiempo;
+                    displayTiempo.textContent = data.tiempo;
+
+                } else {
+					console.error("Error al obtener configuraciones:", response.status);
+				}
+			} catch (error) {
+				console.error("Error en la solicitud:", error);
+			}
+		}
+
+		window.onload = cargarConfiguraciones;
         document.addEventListener('click', (e) => {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.querySelector('.menu-toggle');
