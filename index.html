@@ -191,16 +191,12 @@
 
         <div class="slider-container">
             <label for="velocidad">Velocidad:</label>
-            <input type="range" id="velocidad" min="0" max="255" value="0" step="5"
-                oninput="actualizarVelocidad('velocidad', 'velocidad-valor')">
-            <span id="velocidad-valor" class="value-display">0</span>
+            <input type="text" id="velocidad-valor" placeholder="Velocidad" oninput="actualizarVelocidad('velocidad-valor')">
         </div>
 
         <div class="slider-container">
             <label for="tiempo">Tiempo:</label>
-            <input type="range" id="tiempo" min="100" max="1000" value="100" step="5"
-                oninput="actualizarTiempo('tiempo', 'tiempo-valor')">
-            <span id="tiempo-valor" class="value-display">100</span>
+            <input type="text" id="tiempo-valor" placeholder="Tiempo" oninput="actualizarTiempo('tiempo-valor')">
         </div>
     </aside>
     <main class="content" id="content">
@@ -256,7 +252,7 @@
         let debounceTimeoutVelocidad;
         let debounceTimeoutTiempo;
         let nodemcu = "1.1.1.1";
-        const intervalTime = 360;
+        let intervalTime = 360;
         const stepsContainer = document.getElementById("stepsContainer");
 
 
@@ -279,8 +275,8 @@
 
             if (direccion == "adelante") secuencia += "W";
             else if (direccion == "atras") secuencia += "S";
-            else if (direccion == "izquierda") secuencia += "D";
-            else if (direccion == "derecha") secuencia += "A";
+            else if (direccion == "izquierda") secuencia += "A";
+            else if (direccion == "derecha") secuencia += "D";
         }
 
         async function stop() {
@@ -354,63 +350,66 @@
             clearTimeout(debounceTimeoutIP);
             debounceTimeoutIP = setTimeout(() => {
                 if (validarIP(ip)) {
-                    input.placeholder = ip;
                     nodemcu = ip;
+					cargarConfiguraciones()
                 } else {
                     alert("Dirección IP inválida");
-                    input.placeholder = "IP inválida";
+                    input.value=""
+					input.placeholder = "Dirección IP inválida";
                 }
-            }, 2000); 
+            }, 3000); 
         }
 
         function validarIP(ip) {
             const regex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
             return regex.test(ip);
         }
-        function actualizarVelocidad(sliderID, displayID) {
-            const slider = document.getElementById(sliderID);
-            const display = document.getElementById(displayID);
-            display.textContent = slider.value;
-            debounceSendRequestVelocidad(slider.value);
+
+        function actualizarVelocidad(inputID) {
+			const value = document.getElementById(inputID).value;
+            debounceSendRequestVelocidad(value);
         }
+
         function debounceSendRequestVelocidad(value) {
-            clearTimeout(debounceTimeoutVelocidad);
-            debounceTimeoutVelocidad = setTimeout(() => {
-                setVelocidad(value);
-            }, 1000);
+			let pwm = Number(value)
+			clearTimeout(debounceTimeoutVelocidad);
+			debounceTimeoutVelocidad = setTimeout(() => {
+                if (Number.isFinite(pwm) && pwm >= 0 && pwm <= 255) {
+					setVelocidad(pwm)
+				} else {
+					alert("Ingresa un tiempo en milisegundos válido")
+				}
+			}, 3000);
         }
-        async function setVelocidad(velocidad){            
+
+        async function setVelocidad(velocidad) {            
             try {
                 const response = await fetch(`http://${nodemcu}/velocidad`, {
                     headers: { "Content-Type": "text/plain" },
                     method: "POST",
                     body: parseInt(velocidad)
                 });
-				if (response.ok) {
-					const respuesta = await response.text();
-					alert(respuesta);
-				} else {
-					alert("Error en la respuesta del servidor:", response.status);
-				}
             } catch (error) {
                 alert("Error en la solicitud");
             }
         }
 
-        function actualizarTiempo(sliderID, displayID) {
-            const slider = document.getElementById(sliderID);
-            const display = document.getElementById(displayID);
-            display.textContent = slider.value;
-            debounceSendRequestTiempo(slider.value);
-
+		function actualizarTiempo(inputID) {
+            const value = document.getElementById(inputID).value;
+            debounceSendRequestTiempo(value);
         }
 
         function debounceSendRequestTiempo(value) {
+            let milisegundos = Number(value)
             clearTimeout(debounceTimeoutTiempo);
             debounceTimeoutTiempo = setTimeout(() => {
-                setTiempo(value)
-				intervalTime = value;
-            }, 1000);
+				if (Number.isFinite(milisegundos) && milisegundos >= 0) {
+					setTiempo(milisegundos)
+				} else {
+					alert("Ingresa un tiempo en milisegundos válido")
+				}
+				intervalTime = milisegundos;
+            }, 3000);
         }
         async function setTiempo(tiempo){
             try {
@@ -419,41 +418,29 @@
 					method: "POST",
 					body: parseInt(tiempo)
                 });
-				if (response.ok) {
-					const respuesta = await response.text();
-					alert(respuesta);
-				} else {
-					alert("Error en la respuesta del servidor:", response.status);
-				}
             } catch (error) {
                 alert("Error en la solicitud");
             }
         }
 
-		async function cargarConfiguraciones() {
+        async function cargarConfiguraciones() {
 			try {
-				const response = await fetch(`${nodoMCUIp}/configuraciones`);
+				const response = await fetch(`http://${nodemcu}/configuraciones`);
 
 				if (response.ok) {
                     const data = await response.json();
-					const sliderVelocidad = document.getElementById("velocidad");
-                    const displayVelocidad = document.getElementById("velocidad-valor");
 
-					const sliderTiempo = document.getElementById("tiempo");
-					const displayTiempo = document.getElementById("tiempo-valor");
+					const velocidad = document.getElementById("velocidad-valor");
+					const tiempo = document.getElementById("tiempo-valor");
 
-
-					sliderVelocidad.value = data.velocidad;
-					displayVelocidad.textContent = data.velocidad;
-                    sliderTiempo.value = data.tiempo;
-                    displayTiempo.textContent = data.tiempo;
+					velocidad.value = data.velocidad;       
+					tiempo.value = data.tiempo;
 
                 } else {
-					console.error("Error al obtener configuraciones:", response.status);
+					alert("Error al obtener configuraciones:", response.status);
 				}
-			} catch (error) {
-				console.error("Error en la solicitud:", error);
-			}
+            } catch (error) {
+            }
 		}
 
 		window.onload = cargarConfiguraciones;
