@@ -1,6 +1,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 
+//L298N
 #define IN1 D1
 #define IN2 D2
 #define IN3 D3
@@ -10,19 +11,22 @@
 
 //74HC595
 #define DATA_PIN D7
-#define CLOCK_PIN D8
-#define LATCH_PIN D9
+#define CLOCK_PIN D0
+#define LATCH_PIN D8
 
 // Estado de LEDs (bits para cada LED)
-const uint8_t LUZ_AMARILLA = 0b00000011;          // Bits 0 y 1
+const uint8_t LUZ_AMARILLA = 0b00000011;          // Bits 0 y 1 
 const uint8_t LUZ_REVERSA = 0b00001100;           // Bits 2 y 3
-const uint8_t LUZ_DIRECCIONAL_IZQ = 0b00010000;   // Bit 4
-const uint8_t LUZ_DIRECCIONAL_DER = 0b00100000;   // Bit 5
-const uint8_t LUZ_FRENO = 0b11000000;             // Bits 6 y 7
+const uint8_t LUZ_DIRECCIONAL_DER = 0b00010000;   // Bit 4
+const uint8_t LUZ_DIRECCIONAL_IZQ = 0b00100000;   // Bit 5
+const uint8_t LUZ_FRENO = 0b11000000;             // Bits 6 y 7 
+const uint8_t LUCES_APAGADAS = 0b00000000;
 
-int velocidad = 100;
-int tiempo = 100;
+int velocidad = 255;
+int tiempo = 360;
 int tiempoDetenido = 500;
+
+// Conexión WIFI
 const char* ssid = "PC";
 const char* password = "68+1O2h8";
 
@@ -70,7 +74,7 @@ void adelante() {
 
 void atras() {
   Serial.println("  Atrás");
-  procesarLuces(LUZ_AMARILLA | LUZ_REVERSA);
+  procesarLuces(LUZ_REVERSA);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, HIGH);
   digitalWrite(IN3, LOW);
@@ -81,20 +85,8 @@ void atras() {
 }
 
 void izquierda() {
-  Serial.println("  Izquierda");
-  procesarLuces(LUZ_AMARILLA | LUZ_DIRECCIONAL_IZQ);
-  digitalWrite(IN1, LOW);
-  digitalWrite(IN2, HIGH);
-  digitalWrite(IN3, HIGH);
-  digitalWrite(IN4, LOW);
-  delay(tiempo);
-  Serial.println("  Detener");
-  detenerMotores();
-}
-
-void derecha() {
-  Serial.println("  Derecha");
-  procesarLuces(LUZ_AMARILLA | LUZ_DIRECCIONAL_DER);
+  Serial.println("  izquierda");
+  procesarLuces(LUZ_DIRECCIONAL_IZQ);
   digitalWrite(IN1, HIGH);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
@@ -104,14 +96,27 @@ void derecha() {
   detenerMotores();
 }
 
+void derecha() {
+  Serial.println("  Derecha");
+  procesarLuces(LUZ_DIRECCIONAL_DER);
+  digitalWrite(IN1, LOW);
+  digitalWrite(IN2, HIGH);
+  digitalWrite(IN3, HIGH);
+  digitalWrite(IN4, LOW);
+  delay(tiempo);
+  Serial.println("  Detener");
+  detenerMotores();
+}
+
 void detenerMotores() {
   Serial.println("  DETENIDO ");
-  procesarLuces(LUZ_AMARILLA | LUZ_FRENO);
+  procesarLuces(LUZ_FRENO);
   digitalWrite(IN1, LOW);
   digitalWrite(IN2, LOW);
   digitalWrite(IN3, LOW);
   digitalWrite(IN4, LOW);
   delay(tiempoDetenido);
+  procesarLuces(LUCES_APAGADAS);
 }
 void setup() {
   pinMode(IN1, OUTPUT);
@@ -150,6 +155,7 @@ void setup() {
   analogWrite(ENA, velocidad);
   analogWrite(ENB, velocidad);
 
+  procesarLuces(LUCES_APAGADAS);
   procesarLuces(LUZ_AMARILLA);
 }
 
@@ -179,7 +185,7 @@ void setVelocidad(){
       analogWrite(ENA, velocidad);
       analogWrite(ENB, velocidad);
       Serial.println("Nueva velocidad: " + String(velocidad));
-      server.send(200, "text/plain", "Nueva velocidad procesada" + velocidad);
+      server.send(200, "text/plain", "Nueva velocidad procesada" + String(velocidad));
     }
   } else {
     server.send(400, "text/plain", "No se recibió velocidad");
@@ -189,16 +195,17 @@ void setTiempo(){
   server.sendHeader("Access-Control-Allow-Origin", "*");
   if (server.hasArg("plain")) {
     int nuevoTiempo = server.arg("plain").toInt();
-    if(nuevoTiempo >=100 && nuevoTiempo <= 1000){
+    if(nuevoTiempo >=0){
       tiempo = nuevoTiempo;
       Serial.println("Nuevo tiempo: " + String(tiempo));
-      server.send(200, "text/plain", "Nueva tiempo procesado" + tiempo);
+      server.send(200, "text/plain", "Nueva tiempo procesado" + String(tiempo));
     }
   } else {
     server.send(400, "text/plain", "No se recibió velocidad");
   }
 }
 void getConfiguraciones() {
+  server.sendHeader("Access-Control-Allow-Origin", "*");
   String response = "{ \"velocidad\": " + String(velocidad) + ", \"tiempo\": " + String(tiempo) + " }";
   server.send(200, "application/json", response);
 }
