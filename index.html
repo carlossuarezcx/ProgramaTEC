@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sidebar</title>
+    <title>Laberinto informático</title>
     <style>
         * {
             margin: 0;
@@ -19,11 +19,11 @@
             overflow: hidden;
         }
 
-        body.no-scroll {
-            position: fixed;
-            width: 100%;
-            overflow: hidden;
-        }
+            body.no-scroll {
+                position: fixed;
+                width: 100%;
+                overflow: hidden;
+            }
 
         .menu-toggle {
             position: fixed;
@@ -33,14 +33,14 @@
             z-index: 2;
         }
 
-        .menu-toggle span {
-            display: block;
-            width: 20px;
-            height: 3px;
-            margin: 6px;
-            background-color: #333;
-            transition: 0.4s;
-        }
+            .menu-toggle span {
+                display: block;
+                width: 20px;
+                height: 3px;
+                margin: 6px;
+                background-color: #333;
+                transition: 0.4s;
+            }
 
         .sidebar {
             position: fixed;
@@ -56,24 +56,24 @@
             z-index: 1;
         }
 
-        .sidebar label {
-            color: #fff;
-            display: block;
-            margin: 15px 25px 5px;
-        }
+            .sidebar label {
+                color: #fff;
+                display: block;
+                margin: 15px 25px 5px;
+            }
 
-        .sidebar input[type="text"] {
-            margin: 0 25px;
-            padding: 8px;
-            width: calc(100% - 50px);
-            border: none;
-            border-radius: 4px;
-        }
+            .sidebar input[type="text"] {
+                margin: 0 25px;
+                padding: 8px;
+                width: calc(100% - 50px);
+                border: none;
+                border-radius: 4px;
+            }
 
-        .sidebar input[type="range"] {
-            margin: 0 25px;
-            width: calc(100% - 50px);
-        }
+            .sidebar input[type="range"] {
+                margin: 0 25px;
+                width: calc(100% - 50px);
+            }
 
         .value-display {
             color: #fff;
@@ -205,27 +205,27 @@
                 <div class="grid-item empty"></div>
                 <div class="grid-item">
                     <button onclick="accion('adelante', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
-                        <img src="img/adelante.png" alt="Adelante" />
+                        <img draggable ="false" src="img/adelante.png" alt="Adelante" />
                     </button>
                 </div>
                 <div class="grid-item empty"></div>
 
                 <div class="grid-item">
                     <button onclick="accion('izquierda', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
-                        <img src="img/izquierda.png" alt="Izquierda" />
+                        <img draggable ="false" src="img/izquierda.png" alt="Izquierda" />
                     </button>
                 </div>
                 <div class="grid-item empty"></div>
                 <div class="grid-item">
                     <button onclick="accion('derecha', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
-                        <img src="img/derecha.png" alt="Derecha" />
+                        <img draggable ="false" src="img/derecha.png" alt="Derecha" />
                     </button>
                 </div>
 
                 <div class="grid-item empty"></div>
                 <div class="grid-item">
                     <button onclick="accion('atras', this)" onmousedown="presionar(this)" onmouseup="soltar(this)">
-                        <img src="img/atras.png" alt="Atrás" />
+                        <img draggable ="false" src="img/atras.png" alt="Atrás" />
                     </button>
                 </div>
                 <div class="grid-item empty"></div>
@@ -234,10 +234,10 @@
         <div class="acciones" id="acciones">
             <div class="acciones-container">
                 <button onclick="stop()" onmousedown="presionar(this)" onmouseup="soltar(this)">
-                    <img src="img/stop.png" alt="Stop" />
+                    <img draggable ="false" src="img/stop.png" alt="Stop" />
                 </button>
                 <button onclick="play()" onmousedown="presionar(this)" onmouseup="soltar(this)">
-                    <img src="img/play.png" alt="Play" />
+                    <img draggable ="false" src="img/play.png" alt="Play" />
                 </button>
             </div>
         </div>
@@ -351,13 +351,13 @@
             debounceTimeoutIP = setTimeout(() => {
                 if (validarIP(ip)) {
                     nodemcu = ip;
-					cargarConfiguraciones()
+                    cargarConfiguraciones()
                 } else {
                     alert("Dirección IP inválida");
-                    input.value=""
-					input.placeholder = "Dirección IP inválida";
+                    input.value = ""
+                    input.placeholder = "Dirección IP inválida";
                 }
-            }, 3000); 
+            }, 3000);
         }
 
         function validarIP(ip) {
@@ -366,23 +366,23 @@
         }
 
         function actualizarVelocidad(inputID) {
-			const value = document.getElementById(inputID).value;
+            const value = document.getElementById(inputID).value;
             debounceSendRequestVelocidad(value);
         }
 
         function debounceSendRequestVelocidad(value) {
-			let pwm = Number(value)
-			clearTimeout(debounceTimeoutVelocidad);
-			debounceTimeoutVelocidad = setTimeout(() => {
+            let pwm = Number(value)
+            clearTimeout(debounceTimeoutVelocidad);
+            debounceTimeoutVelocidad = setTimeout(() => {
                 if (Number.isFinite(pwm) && pwm >= 0 && pwm <= 255) {
-					setVelocidad(pwm)
-				} else {
-					alert("Ingresa un tiempo en milisegundos válido")
-				}
-			}, 3000);
+                    setVelocidad(pwm)
+                } else {
+                    alert("Ingresa un tiempo en milisegundos válido")
+                }
+            }, 3000);
         }
 
-        async function setVelocidad(velocidad) {            
+        async function setVelocidad(velocidad) {
             try {
                 const response = await fetch(`http://${nodemcu}/velocidad`, {
                     headers: { "Content-Type": "text/plain" },
@@ -394,7 +394,7 @@
             }
         }
 
-		function actualizarTiempo(inputID) {
+        function actualizarTiempo(inputID) {
             const value = document.getElementById(inputID).value;
             debounceSendRequestTiempo(value);
         }
@@ -403,20 +403,20 @@
             let milisegundos = Number(value)
             clearTimeout(debounceTimeoutTiempo);
             debounceTimeoutTiempo = setTimeout(() => {
-				if (Number.isFinite(milisegundos) && milisegundos >= 0) {
-					setTiempo(milisegundos)
-				} else {
-					alert("Ingresa un tiempo en milisegundos válido")
-				}
-				intervalTime = milisegundos;
+                if (Number.isFinite(milisegundos) && milisegundos >= 0) {
+                    setTiempo(milisegundos)
+                } else {
+                    alert("Ingresa un tiempo en milisegundos válido")
+                }
+                intervalTime = milisegundos;
             }, 3000);
         }
-        async function setTiempo(tiempo){
+        async function setTiempo(tiempo) {
             try {
-				const response = await fetch(`http://${nodemcu}/tiempo`, {
-					headers: { "Content-Type": "text/plain" },
-					method: "POST",
-					body: parseInt(tiempo)
+                const response = await fetch(`http://${nodemcu}/tiempo`, {
+                    headers: { "Content-Type": "text/plain" },
+                    method: "POST",
+                    body: parseInt(tiempo)
                 });
             } catch (error) {
                 alert("Error en la solicitud");
@@ -424,26 +424,26 @@
         }
 
         async function cargarConfiguraciones() {
-			try {
-				const response = await fetch(`http://${nodemcu}/configuraciones`);
+            try {
+                const response = await fetch(`http://${nodemcu}/configuraciones`);
 
-				if (response.ok) {
+                if (response.ok) {
                     const data = await response.json();
 
-					const velocidad = document.getElementById("velocidad-valor");
-					const tiempo = document.getElementById("tiempo-valor");
+                    const velocidad = document.getElementById("velocidad-valor");
+                    const tiempo = document.getElementById("tiempo-valor");
 
-					velocidad.value = data.velocidad;       
-					tiempo.value = data.tiempo;
+                    velocidad.value = data.velocidad;
+                    tiempo.value = data.tiempo;
 
                 } else {
-					alert("Error al obtener configuraciones:", response.status);
-				}
+                    alert("Error al obtener configuraciones:", response.status);
+                }
             } catch (error) {
             }
-		}
+        }
 
-		window.onload = cargarConfiguraciones;
+        window.onload = cargarConfiguraciones;
         document.addEventListener('click', (e) => {
             const sidebar = document.getElementById('sidebar');
             const toggle = document.querySelector('.menu-toggle');
